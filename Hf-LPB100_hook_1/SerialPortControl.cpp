@@ -177,6 +177,7 @@ int SerialPortWrite(char *szBuffer, int count)
 			{
 				while (!GetOverlappedResult(hCom, &m_osWrite, &dwRealSend, FALSE))
 				{
+
 					if (GetLastError() == ERROR_IO_INCOMPLETE)
 					{
 						//cout<<"Ð´Î´Íê³É£¬¼ÌÐø!"<     
