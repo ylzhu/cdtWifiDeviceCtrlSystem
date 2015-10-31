@@ -38,6 +38,8 @@ private:
 
     BOOL    SendData(HWND hWnd);
 
+	int macaddress_parse(char *pmac, char *pRetCommand);
+
     
     LRESULT OnStartStop(HWND hWnd,UINT wMsg,WPARAM wParam,LPARAM lParam);
 

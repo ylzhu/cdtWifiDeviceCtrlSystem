@@ -34,7 +34,7 @@ int OpenSerialPort1(char *szPort , int baudRate, int data_bits, int stop_bits)
 		SetupComm(hCom, 128, 128); //输入缓冲区和输出缓冲区的大小都是1024
 		
 		//设定读超时
-		TimeOuts.ReadIntervalTimeout = 80;
+		TimeOuts.ReadIntervalTimeout = 100;
 		TimeOuts.ReadTotalTimeoutMultiplier = 0;
 		TimeOuts.ReadTotalTimeoutConstant = 0;
 
@@ -70,8 +70,8 @@ DWORD WINAPI SerialPort1ThreadProcess(HWND hWnd) //主窗口句柄
 	char str[101];
 	DWORD wCount; //读取的字节数
 #if 1
-	char lpInBuffer[256];
-	DWORD dwBytesRead = 256;
+	char lpInBuffer[512];
+	DWORD dwBytesRead = 512;
 	DWORD dwRealRead = 0;
 	COMSTAT ComStat;
 	DWORD dwErrorFlags;
@@ -170,7 +170,7 @@ int SerialPortWrite(char *szBuffer, int count)
 	if (ClearCommError(hCom, &dwErrorFlags, NULL))
 	{
 		PurgeComm(hCom, PURGE_TXABORT | PURGE_TXCLEAR);
-		bWriteStat = WriteFile(hCom, szBuffer, count,(DWORD*)(&count), &m_osWrite);
+		bWriteStat = WriteFile(hCom, szBuffer, count, &dwRealSend, &m_osWrite);
 		if (!bWriteStat)
 		{
 			if (GetLastError() == ERROR_IO_PENDING)

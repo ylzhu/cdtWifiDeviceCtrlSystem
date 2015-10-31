@@ -188,17 +188,42 @@ LRESULT WifiTestProc::OnTimer( HWND hWnd,UINT wMsg,WPARAM wParam,LPARAM lParam )
 
 LRESULT WifiTestProc::OnCommand( HWND hWnd,UINT wMsg,WPARAM wParam,LPARAM lParam )
 {
-
-	
-	
     switch (LOWORD(wParam))
     {
 		case IDOK:
 		{	
 		    char szMacText[64] = { 0 };
+			char szCommand[512] = { 0 };
+			char * buf;
+			char *delim = ",";
+			int returncode = 0;
+
 			GetDlgItemText(hWnd, IDC_EDIT_MAC, szMacText, 64);
 			SetDlgItemText(hWnd, IDC_EDIT_MAC, "");
-			SerialPortWrite(szMacText, strlen(szMacText));
+			returncode = macaddress_parse(szMacText, szCommand);
+			if (returncode == -1)
+			{
+				SendDlgListboxMessage(hWnd, IDC_LIST_MSG, "MAC address format is not correct!" );
+				break;
+			}
+			else if (returncode == -2)
+			{
+				SendDlgListboxMessage(hWnd, IDC_LIST_MSG, "MAC address format is not correct!");
+				break;
+			}
+#if 0
+			buf = strtok(szCommand, delim);
+			while (buf != NULL)
+			{
+				strcpy(szMacText, buf);
+				SerialPortWrite(szMacText, strlen(szMacText));
+				buf = strtok(NULL, delim);
+			}
+#else
+			if ((szCommand != NULL) && (strlen(szCommand)>0))
+			SerialPortWrite(szCommand, strlen(szCommand));
+#endif
+			
 			break;
 		}
 		case IDCANCEL:
@@ -402,5 +427,70 @@ BOOL WifiTestProc::PrintLogToExcelFile()
 
 int WifiTestProc::OnComPortButton_click()
 {
+	return 0;
+}
+
+int WifiTestProc::macaddress_parse(char *pmac, char *pRetCommand)
+{
+	char szTmp[64] = { 0 };
+	if (strlen(pmac) != 12)
+	{
+		return -1;
+	}
+	for (int i = 0; i < strlen(pmac); i++)
+	{
+		if (pmac[i]>='a' && pmac[i] <= 'f')
+		{
+			continue;
+		}
+		else if (pmac[i]>='A' && pmac[i] <= 'F')
+		{
+			continue;
+		}
+		else if (pmac[i]>='0' && pmac[i] <= '9')
+		{
+			continue;
+		}
+		else
+		{
+			return -2;
+		}
+	}
+	strcpy(pRetCommand, "");
+#if 0
+	sprintf(pRetCommand, "%s%c%c,", "AT#FLASH -s0x17004 -v0x", pmac[0], pmac[1]);
+
+	sprintf(szTmp, "%s%c%c,", "AT#FLASH -s0x17005 -v0x", pmac[2], pmac[3]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c,", "AT#FLASH -s0x17006 -v0x", pmac[4], pmac[5]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c,", "AT#FLASH -s0x17007 -v0x", pmac[6], pmac[7]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c,", "AT#FLASH -s0x17008 -v0x", pmac[8], pmac[9]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c", "AT#FLASH -s0x17009 -v0x", pmac[10], pmac[11]);
+	strcat(pRetCommand, szTmp);
+#else
+	sprintf(pRetCommand, "%s%c%c\r\n", "AT#FLASH -s0x17004 -v0x", pmac[0], pmac[1]);
+
+	sprintf(szTmp, "%s%c%c\r\n", "AT#FLASH -s0x17005 -v0x", pmac[2], pmac[3]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c\r\n", "AT#FLASH -s0x17006 -v0x", pmac[4], pmac[5]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c\r\n", "AT#FLASH -s0x17007 -v0x", pmac[6], pmac[7]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c\r\n", "AT#FLASH -s0x17008 -v0x", pmac[8], pmac[9]);
+	strcat(pRetCommand, szTmp);
+
+	sprintf(szTmp, "%s%c%c", "AT#FLASH -s0x17009 -v0x", pmac[10], pmac[11]);
+	strcat(pRetCommand, szTmp);
+#endif
 	return 0;
 }
